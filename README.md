@@ -4,11 +4,15 @@ An AI-powered contact management workflow built with **n8n**, integrating **Goog
 
 ## Overview
 
-This project automates the processing of incoming contact form submissions using AI and workflow automation.
+This project is a self-developed demonstration of an AI-powered contact management system based on a fictional business scenario.
+
+The scenario was independently designed to represent a plausible real-world business use case: automating the processing, analysis and routing of incoming contact form submissions.
 
 Google Gemini analyzes each inquiry, determines its category, priority and sentiment, generates a concise summary and recommends the next appropriate action.
 
 Based on the AI analysis, inquiries are automatically routed to the relevant department, while submission data and notification details are stored in Google Sheets.
+
+The project was developed for learning and portfolio purposes and is not connected to a real company's internal systems or customer data.
 
 ## Features
 
