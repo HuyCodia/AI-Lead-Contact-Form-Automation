@@ -48,10 +48,10 @@ Based on the AI analysis, inquiries are automatically routed to the relevant dep
 
 ```text
 ai-lead-contact-form-automation/
-├── workflow/
-│   └── workflow.json
 ├── screenshots/
 │   └── workflow-overview.png
+├── workflow/
+│   └── Al-Lead-&-Contact-Form-Automation.json
 └── README.md
 ```
 
