@@ -1,0 +1,893 @@
+{
+  "name": "AI Lead & Contact Form Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Contact Us",
+        "formDescription": "Please fill out the form below. Our team will review your inquiry and get back to you.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name"
+            },
+            {
+              "fieldLabel": "Email Address",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Company"
+            },
+            {
+              "fieldLabel": "Subject"
+            },
+            {
+              "fieldLabel": "Message",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5e8beed1-431f-4548-beba-d3a68c875e53",
+      "name": "On form submission"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI assistant responsible for analyzing incoming business contact form submissions.\n\nAnalyze the following form submission and provide a structured assessment.\n\nForm data:\n{{ JSON.stringify($json) }}\n\nYour tasks:\n\n1. Categorize the inquiry as one of the following:\n   - Sales\n   - Support\n   - Application\n   - Other\n\n2. Determine the priority:\n   - Low\n   - Medium\n   - High\n\n3. Analyze the sentiment:\n   - Positive\n   - Neutral\n   - Negative\n\n4. Write a concise summary of the inquiry.\n\n5. Recommend an appropriate next action for the company.\n\nLanguage requirements:\n- Automatically detect the language of the original inquiry.\n- Write the summary and recommended next action in the same language as the original inquiry.\n- Keep category, priority, and sentiment values in English.\n- Do not translate names, email addresses, or company names.\n\nImportant:\n- Base your analysis only on the submitted form data.\n- Do not invent missing information.\n- Keep the response clear, concise, and professional.\n\nOutput requirements:\n\nReturn the result as a valid JSON object matching the following structure:\n\n{\n  \"category\": \"Sales\",\n  \"priority\": \"Medium\",\n  \"sentiment\": \"Positive\",\n  \"summary\": \"A concise summary of the inquiry.\",\n  \"recommended_next_step\": \"A recommended next action.\"\n}\n\nReturn only the JSON object. Do not include Markdown or additional explanations.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        368,
+        -16
+      ],
+      "id": "cff21dfb-aebd-4c68-96d1-409271c45049",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        160
+      ],
+      "id": "8c0c040d-ae64-46b9-a0e7-b12bf87c6749",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"category\": {\n      \"type\": \"string\",\n      \"enum\": [\"Sales\", \"Support\", \"Application\", \"Other\"]\n    },\n    \"priority\": {\n      \"type\": \"string\",\n      \"enum\": [\"Low\", \"Medium\", \"High\"]\n    },\n    \"sentiment\": {\n      \"type\": \"string\",\n      \"enum\": [\"Positive\", \"Neutral\", \"Negative\"]\n    },\n    \"summary\": {\n      \"type\": \"string\"\n    },\n    \"recommended_next_step\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"category\",\n    \"priority\",\n    \"sentiment\",\n    \"summary\",\n    \"recommended_next_step\"\n  ],\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        160
+      ],
+      "id": "1c6e6dfb-b1dd-47ce-b09d-7f4fb90c3963",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk",
+          "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1258459567,
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=1258459567"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.Timestamp }}",
+            "Category": "={{ $json.Category }}",
+            "Assigned Team": "={{ $json[\"Assigned Team\"] }}",
+            "Recipient": "={{ $json.Recipient }}",
+            "Email Subject": "={{ $json[\"Email Subject\"] }}",
+            "Notification Status": "={{ $json[\"Notification Status\"] }}",
+            "Email Body": "={{ $json[\"Email Body\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Assigned Team",
+              "displayName": "Assigned Team",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Recipient",
+              "displayName": "Recipient",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Subject",
+              "displayName": "Email Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Body",
+              "displayName": "Email Body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notification Status",
+              "displayName": "Notification Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1536,
+        -32
+      ],
+      "id": "a3dffc56-5170-42e1-9543-6b148afbc86f",
+      "name": "Append row in sheet1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7bd670d7-f6cd-45eb-8a35-7127ce7a3eb7",
+              "name": "Timestamp",
+              "value": "={{ $json.submittedAt }}",
+              "type": "string"
+            },
+            {
+              "id": "275a30a8-a6e3-48d7-87ab-d5c40bfe7c58",
+              "name": "Category",
+              "value": "={{ $json.output.category }}",
+              "type": "string"
+            },
+            {
+              "id": "16ebd17b-fcc8-4ea6-b4d8-c962e57987e6",
+              "name": "Assigned Team",
+              "value": "Sales Team",
+              "type": "string"
+            },
+            {
+              "id": "28124b70-101d-4fbe-b86c-f7788ed8b8d3",
+              "name": "Recipient",
+              "value": "sales@company.example",
+              "type": "string"
+            },
+            {
+              "id": "0c2f64fd-3117-4361-854d-f81906697710",
+              "name": "Email Subject",
+              "value": "=New inquiry – {{ $json.Subject }}",
+              "type": "string"
+            },
+            {
+              "id": "2ff1fcf0-50ba-4050-aa7b-c099bbae3362",
+              "name": "Email Body",
+              "value": "=\n{{\n(() => {\n  const priority = ($json.output.priority || \"LOW\").toUpperCase();\n\n  const colors = {\n    LOW: [\"#DCFCE7\", \"#166534\", \"#22C55E\"],\n    MEDIUM: [\"#FFEDD5\", \"#9A3412\", \"#F97316\"],\n    HIGH: [\"#FEE2E2\", \"#991B1B\", \"#EF4444\"]\n  };\n\n  const [bg, color, border] = colors[priority] || colors.LOW;\n\n  const safe = (value) => String(value ?? \"\")\n    .replace(/&/g, \"&amp;\")\n    .replace(/</g, \"&lt;\")\n    .replace(/>/g, \"&gt;\")\n    .replace(/\"/g, \"&quot;\")\n    .replace(/'/g, \"&#039;\");\n\n  return `\n  <div style=\"font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 700px;\">\n\n    <p>Hello Sales Team,</p>\n\n    <p>A new sales inquiry has been received and analyzed by our AI-powered contact management system.</p>\n\n    <h3>CUSTOMER INFORMATION</h3>\n    <p>\n      <strong>Name:</strong> ${safe($json[\"Full Name\"])}<br>\n      <strong>Email:</strong> ${safe($json[\"Email Address\"])}<br>\n      <strong>Company:</strong> ${safe($json.Company)}<br>\n      <strong>Received at:</strong> ${safe($json.submittedAt)}\n    </p>\n\n    <h3>INQUIRY DETAILS</h3>\n    <p><strong>Subject:</strong> ${safe($json.Subject)}</p>\n\n    <p><strong>Original Message:</strong></p>\n    <div style=\"background: #f5f5f5; padding: 12px; border-radius: 6px; white-space: pre-wrap;\">${safe($json.Message)}</div>\n\n    <h3>AI ANALYSIS</h3>\n    <p><strong>Category:</strong> ${safe($json.output.category)}</p>\n\n    <p><strong>Priority:</strong><br>\n      <span style=\"display:inline-block; background:${bg}; color:${color}; border:1px solid ${border}; padding:5px 14px; border-radius:5px; font-weight:bold;\">\n        ${safe(priority)}\n      </span>\n    </p>\n\n    <p><strong>Sentiment:</strong> ${safe($json.output.sentiment)}</p>\n\n    <p><strong>AI Summary:</strong><br>${safe($json.output.summary)}</p>\n\n    <p><strong>Recommended Next Step:</strong><br>${safe($json.output.recommended_next_step)}</p>\n\n    <hr>\n    <p>Please review this inquiry and follow up with the potential customer.</p>\n\n    <p>Best regards,<br><strong>AI Contact Management System</strong></p>\n\n  </div>\n  `;\n})()\n}}\n",
+              "type": "string"
+            },
+            {
+              "id": "5cabbccf-4d46-4314-935d-7d8a3a8be50f",
+              "name": "Notification Status",
+              "value": "Notification prepared",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1232,
+        -448
+      ],
+      "id": "88ff5ea3-8360-4d43-9a2c-e895f18c71c0",
+      "name": "Prepare Sales Notification"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7bd670d7-f6cd-45eb-8a35-7127ce7a3eb7",
+              "name": "Timestamp",
+              "value": "={{ $json.submittedAt }}",
+              "type": "string"
+            },
+            {
+              "id": "275a30a8-a6e3-48d7-87ab-d5c40bfe7c58",
+              "name": "Category",
+              "value": "={{ $json.output.category }}",
+              "type": "string"
+            },
+            {
+              "id": "16ebd17b-fcc8-4ea6-b4d8-c962e57987e6",
+              "name": "Assigned Team",
+              "value": "HR / Recruitment Team",
+              "type": "string"
+            },
+            {
+              "id": "28124b70-101d-4fbe-b86c-f7788ed8b8d3",
+              "name": "Recipient",
+              "value": "hr@company.example",
+              "type": "string"
+            },
+            {
+              "id": "0c2f64fd-3117-4361-854d-f81906697710",
+              "name": "Email Subject",
+              "value": "=New inquiry – {{ $json.Subject }}",
+              "type": "string"
+            },
+            {
+              "id": "2ff1fcf0-50ba-4050-aa7b-c099bbae3362",
+              "name": "Email Body",
+              "value": "=\n{{\n(() => {\n  const priority = ($json.output.priority || \"LOW\").toUpperCase();\n\n  const colors = {\n    LOW: [\"#DCFCE7\", \"#166534\", \"#22C55E\"],\n    MEDIUM: [\"#FFEDD5\", \"#9A3412\", \"#F97316\"],\n    HIGH: [\"#FEE2E2\", \"#991B1B\", \"#EF4444\"]\n  };\n\n  const [bg, color, border] = colors[priority] || colors.LOW;\n\n  const safe = (value) => String(value ?? \"\")\n    .replace(/&/g, \"&amp;\")\n    .replace(/</g, \"&lt;\")\n    .replace(/>/g, \"&gt;\")\n    .replace(/\"/g, \"&quot;\")\n    .replace(/'/g, \"&#039;\");\n\n  return `\n  <div style=\"font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 700px;\">\n\n    <p>Hello HR / Recruitment Team,</p>\n\n    <p>A new job application inquiry has been received and analyzed by our AI-powered contact management system.</p>\n\n    <h3>APPLICANT INFORMATION</h3>\n    <p>\n      <strong>Name:</strong> ${safe($json[\"Full Name\"])}<br>\n      <strong>Email:</strong> ${safe($json[\"Email Address\"])}<br>\n      <strong>Company:</strong> ${safe($json.Company)}<br>\n      <strong>Received at:</strong> ${safe($json.submittedAt)}\n    </p>\n\n    <h3>APPLICATION DETAILS</h3>\n    <p><strong>Subject:</strong> ${safe($json.Subject)}</p>\n\n    <p><strong>Original Message:</strong></p>\n    <div style=\"background: #f5f5f5; padding: 12px; border-radius: 6px; white-space: pre-wrap;\">${safe($json.Message)}</div>\n\n    <h3>AI ANALYSIS</h3>\n    <p><strong>Category:</strong> ${safe($json.output.category)}</p>\n\n    <p><strong>Priority:</strong><br>\n      <span style=\"display:inline-block; background:${bg}; color:${color}; border:1px solid ${border}; padding:5px 14px; border-radius:5px; font-weight:bold;\">\n        ${safe(priority)}\n      </span>\n    </p>\n\n    <p><strong>Sentiment:</strong> ${safe($json.output.sentiment)}</p>\n\n    <p><strong>AI Summary:</strong><br>${safe($json.output.summary)}</p>\n\n    <p><strong>Recommended Next Step:</strong><br>${safe($json.output.recommended_next_step)}</p>\n\n    <hr>\n    <p>Please review this application inquiry and determine the appropriate next steps.</p>\n\n    <p>Best regards,<br><strong>AI Contact Management System</strong></p>\n\n  </div>\n  `;\n})()\n}}\n",
+              "type": "string"
+            },
+            {
+              "id": "5cabbccf-4d46-4314-935d-7d8a3a8be50f",
+              "name": "Notification Status",
+              "value": "Notification prepared",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1232,
+        -112
+      ],
+      "id": "eae7022b-15db-43e9-8c17-d33700f182b6",
+      "name": "Prepare HR Notification"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk",
+          "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Full Name": "={{ $json[\"Full Name\"] }}",
+            "Email": "={{ $json[\"Email Address\"] }}",
+            "Company": "={{ $json.Company }}",
+            "Subject": "={{ $json.Subject }}",
+            "Message": "={{ $json.Message }}",
+            "Category": "={{ $json.output.category }}",
+            "Priority": "={{ $json.output.priority }}",
+            "Sentiment": "={{ $json.output.sentiment }}",
+            "Summary": "={{ $json.output.summary }}",
+            "Recommended Next Step": "={{ $json.output.recommended_next_step }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Recommended Next Step",
+              "displayName": "Recommended Next Step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        944,
+        144
+      ],
+      "id": "cf9c135b-50f6-4f27-a523-3847e269c7e3",
+      "name": "Save Contact Submission"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        704,
+        -192
+      ],
+      "id": "f6cb7db1-14d6-4221-a9fa-c183a2b1fbb2",
+      "name": "Merge Original Form Data with AI Analysis"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "Sales",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f740b040-9b79-4118-83db-68bbde070cd7"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sales"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "02a7ec40-d509-4692-9845-4d24f7772dbf",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "Support",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Support"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "e344a6bd-88bd-4978-8c6b-2d2ba329cc14",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "Application",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "HR_Recruitment"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "3f1b470a-a889-44ea-8e80-04d1f8370720",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "Other",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "General Inquiry"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        880,
+        -224
+      ],
+      "id": "bdce0672-c84f-4577-a605-5d1bfa3d728a",
+      "name": "Route Inquiry by AI Category"
+    },
+    {
+      "parameters": {
+        "sendTo": "{{ $json.Recipient }}",
+        "subject": "={{ $json[\"Email Subject\"] }}",
+        "message": "={{ $json[\"Email Body\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1536,
+        -336
+      ],
+      "id": "f69ec3b6-9829-4bdd-b1ca-26c729dea7f2",
+      "name": "Send Department Notification via Gmail"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7bd670d7-f6cd-45eb-8a35-7127ce7a3eb7",
+              "name": "Timestamp",
+              "value": "={{ $json.submittedAt }}",
+              "type": "string"
+            },
+            {
+              "id": "275a30a8-a6e3-48d7-87ab-d5c40bfe7c58",
+              "name": "Category",
+              "value": "={{ $json.output.category }}",
+              "type": "string"
+            },
+            {
+              "id": "16ebd17b-fcc8-4ea6-b4d8-c962e57987e6",
+              "name": "Assigned Team",
+              "value": "General Inquiries Team",
+              "type": "string"
+            },
+            {
+              "id": "28124b70-101d-4fbe-b86c-f7788ed8b8d3",
+              "name": "Recipient",
+              "value": "info@company.example",
+              "type": "string"
+            },
+            {
+              "id": "0c2f64fd-3117-4361-854d-f81906697710",
+              "name": "Email Subject",
+              "value": "=New inquiry – {{ $json.Subject }}",
+              "type": "string"
+            },
+            {
+              "id": "2ff1fcf0-50ba-4050-aa7b-c099bbae3362",
+              "name": "Email Body",
+              "value": "=\n{{\n(() => {\n  const priority = ($json.output.priority || \"LOW\").toUpperCase();\n\n  const colors = {\n    LOW: [\"#DCFCE7\", \"#166534\", \"#22C55E\"],\n    MEDIUM: [\"#FFEDD5\", \"#9A3412\", \"#F97316\"],\n    HIGH: [\"#FEE2E2\", \"#991B1B\", \"#EF4444\"]\n  };\n\n  const [bg, color, border] = colors[priority] || colors.LOW;\n\n  const safe = (value) => String(value ?? \"\")\n    .replace(/&/g, \"&amp;\")\n    .replace(/</g, \"&lt;\")\n    .replace(/>/g, \"&gt;\")\n    .replace(/\"/g, \"&quot;\")\n    .replace(/'/g, \"&#039;\");\n\n  return `\n  <div style=\"font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 700px;\">\n\n    <p>Hello General Inquiries Team,</p>\n\n    <p>A new general inquiry has been received and analyzed by our AI-powered contact management system.</p>\n\n    <h3>CONTACT INFORMATION</h3>\n    <p>\n      <strong>Name:</strong> ${safe($json[\"Full Name\"])}<br>\n      <strong>Email:</strong> ${safe($json[\"Email Address\"])}<br>\n      <strong>Company:</strong> ${safe($json.Company)}<br>\n      <strong>Received at:</strong> ${safe($json.submittedAt)}\n    </p>\n\n    <h3>INQUIRY DETAILS</h3>\n    <p><strong>Subject:</strong> ${safe($json.Subject)}</p>\n\n    <p><strong>Original Message:</strong></p>\n    <div style=\"background: #f5f5f5; padding: 12px; border-radius: 6px; white-space: pre-wrap;\">${safe($json.Message)}</div>\n\n    <h3>AI ANALYSIS</h3>\n    <p><strong>Category:</strong> ${safe($json.output.category)}</p>\n\n    <p><strong>Priority:</strong><br>\n      <span style=\"display:inline-block; background:${bg}; color:${color}; border:1px solid ${border}; padding:5px 14px; border-radius:5px; font-weight:bold;\">\n        ${safe(priority)}\n      </span>\n    </p>\n\n    <p><strong>Sentiment:</strong> ${safe($json.output.sentiment)}</p>\n\n    <p><strong>AI Summary:</strong><br>${safe($json.output.summary)}</p>\n\n    <p><strong>Recommended Next Step:</strong><br>${safe($json.output.recommended_next_step)}</p>\n\n    <hr>\n    <p>Please review this inquiry and forward it to the appropriate contact if necessary.</p>\n\n    <p>Best regards,<br><strong>AI Contact Management System</strong></p>\n\n  </div>\n  `;\n})()\n}}\n",
+              "type": "string"
+            },
+            {
+              "id": "5cabbccf-4d46-4314-935d-7d8a3a8be50f",
+              "name": "Notification Status",
+              "value": "Notification prepared",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1232,
+        48
+      ],
+      "id": "78fdd5f5-61ea-4061-a148-85aa9ee54488",
+      "name": "Prepare General Inquiry Notification"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7bd670d7-f6cd-45eb-8a35-7127ce7a3eb7",
+              "name": "Timestamp",
+              "value": "={{ $json.submittedAt }}",
+              "type": "string"
+            },
+            {
+              "id": "275a30a8-a6e3-48d7-87ab-d5c40bfe7c58",
+              "name": "Category",
+              "value": "={{ $json.output.category }}",
+              "type": "string"
+            },
+            {
+              "id": "16ebd17b-fcc8-4ea6-b4d8-c962e57987e6",
+              "name": "Assigned Team",
+              "value": "Support Team",
+              "type": "string"
+            },
+            {
+              "id": "28124b70-101d-4fbe-b86c-f7788ed8b8d3",
+              "name": "Recipient",
+              "value": "support@company.example",
+              "type": "string"
+            },
+            {
+              "id": "0c2f64fd-3117-4361-854d-f81906697710",
+              "name": "Email Subject",
+              "value": "=New inquiry – {{ $json.Subject }}",
+              "type": "string"
+            },
+            {
+              "id": "2ff1fcf0-50ba-4050-aa7b-c099bbae3362",
+              "name": "Email Body",
+              "value": "=\n{{\n(() => {\n  const priority = ($json.output.priority || \"LOW\").toUpperCase();\n\n  const colors = {\n    LOW: [\"#DCFCE7\", \"#166534\", \"#22C55E\"],\n    MEDIUM: [\"#FFEDD5\", \"#9A3412\", \"#F97316\"],\n    HIGH: [\"#FEE2E2\", \"#991B1B\", \"#EF4444\"]\n  };\n\n  const [bg, color, border] = colors[priority] || colors.LOW;\n\n  const safe = (value) => String(value ?? \"\")\n    .replace(/&/g, \"&amp;\")\n    .replace(/</g, \"&lt;\")\n    .replace(/>/g, \"&gt;\")\n    .replace(/\"/g, \"&quot;\")\n    .replace(/'/g, \"&#039;\");\n\n  return `\n  <div style=\"font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 700px;\">\n\n    <p>Hello Support Team,</p>\n\n    <p>A new support inquiry has been received and analyzed by our AI-powered contact management system.</p>\n\n    <h3>CUSTOMER INFORMATION</h3>\n    <p>\n      <strong>Name:</strong> ${safe($json[\"Full Name\"])}<br>\n      <strong>Email:</strong> ${safe($json[\"Email Address\"])}<br>\n      <strong>Company:</strong> ${safe($json.Company)}<br>\n      <strong>Received at:</strong> ${safe($json.submittedAt)}\n    </p>\n\n    <h3>INQUIRY DETAILS</h3>\n    <p><strong>Subject:</strong> ${safe($json.Subject)}</p>\n    <p><strong>Original Message:</strong></p>\n    <div style=\"background: #f5f5f5; padding: 12px; border-radius: 6px; white-space: pre-wrap;\">${safe($json.Message)}</div>\n\n    <h3>AI ANALYSIS</h3>\n    <p><strong>Category:</strong> ${safe($json.output.category)}</p>\n\n    <p><strong>Priority:</strong><br>\n      <span style=\"display:inline-block; background:${bg}; color:${color}; border:1px solid ${border}; padding:5px 14px; border-radius:5px; font-weight:bold;\">\n        ${safe(priority)}\n      </span>\n    </p>\n\n    <p><strong>Sentiment:</strong> ${safe($json.output.sentiment)}</p>\n    <p><strong>AI Summary:</strong><br>${safe($json.output.summary)}</p>\n    <p><strong>Recommended Next Step:</strong><br>${safe($json.output.recommended_next_step)}</p>\n\n    <hr>\n    <p>Please review this inquiry and take the appropriate action.</p>\n    <p>Best regards,<br><strong>AI Contact Management System</strong></p>\n\n  </div>\n  `;\n})()\n}}\n",
+              "type": "string"
+            },
+            {
+              "id": "5cabbccf-4d46-4314-935d-7d8a3a8be50f",
+              "name": "Notification Status",
+              "value": "Notification prepared",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1232,
+        -288
+      ],
+      "id": "65f4cd3f-9fc0-4476-bc51-b84e41ab4bc7",
+      "name": "Prepare Support Notification"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Original Form Data with AI Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge Original Form Data with AI Analysis",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Prepare Sales Notification": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Department Notification via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare HR Notification": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Department Notification via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Original Form Data with AI Analysis": {
+      "main": [
+        [
+          {
+            "node": "Route Inquiry by AI Category",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Contact Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Inquiry by AI Category": {
+      "main": [
+        [
+          {
+            "node": "Prepare Sales Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Support Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare HR Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare General Inquiry Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare General Inquiry Notification": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Department Notification via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Support Notification": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Department Notification via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
